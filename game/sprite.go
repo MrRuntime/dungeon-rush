@@ -1,5 +1,7 @@
 package game
 
+import "log"
+
 type PositionBufferSlot struct {
 	x         int
 	y         int
@@ -25,9 +27,13 @@ type Sprite struct {
 	dropRate   float64
 }
 
-func (s *Sprite) InitCommonSprite(weaponId int, textureId int, hp int) {
+type SpriteList struct {
+	list map[int]*Sprite
+}
+
+func (self *SpriteList) AddSprite(id int, weapon *Weapon, texture *Texture, hp int) {
 	ani := createAnimation(
-		textures[textureId],
+		texture,
 		nil,
 		LOOP_INFI,
 		SPRITE_ANIMATION_DURATION,
@@ -37,53 +43,61 @@ func (s *Sprite) InitCommonSprite(weaponId int, textureId int, hp int) {
 		0,
 		AT_BOTTOM_CENTER,
 	)
-	s.x = 0
-	s.y = 0
-	s.hp = hp
-	s.totalHp = hp
-	s.weapon = &weapons[weaponId]
-	s.ani = ani
-	s.face = RIGHT
-	s.direction = RIGHT
-	s.lastAttack = 0
-	s.dropRate = 1
+	self.list[id] = &Sprite{
+		x:          0,
+		y:          0,
+		hp:         hp,
+		totalHp:    hp,
+		weapon:     weapon,
+		ani:        ani,
+		face:       RIGHT,
+		direction:  RIGHT,
+		lastAttack: 0,
+		dropRate:   1,
+	}
+}
+
+func (self *SpriteList) GetSprite(id int) *Sprite {
+	return self.list[id]
+}
+
+func CreateSpriteList() SpriteList {
+	return SpriteList{
+		list: make(map[int]*Sprite),
+	}
 }
 
 func InitCommonSprites() {
 	// Heroes
-	commonSprites[SPRITE_KNIGHT].InitCommonSprite(WEAPON_SWORD, RES_KNIGHT_M, 150)
-	// initCommonSprite(&commonSprites[SPRITE_ELF], &wp.weapons[wp.WEAPON_ARROW], RES_ELF_M, 100)
-	// initCommonSprite(&commonSprites[SPRITE_WIZZARD], &wp.weapons[wp.WEAPON_FIREBALL], RES_WIZZARD_M, 95)
-	// initCommonSprite(&commonSprites[SPRITE_LIZARD], &wp.weapons[wp.WEAPON_MONSTER_CLAW], RES_ZIGGY_M, 120)
+	commonSprites.AddSprite(SPRITE_KNIGHT, &weapons[WEAPON_SWORD], textures[RES_KNIGHT_M], 150)
+	commonSprites.AddSprite(SPRITE_ELF, &weapons[WEAPON_ARROW], textures[RES_ELF_M], 100)
+	commonSprites.AddSprite(SPRITE_WIZZARD, &weapons[WEAPON_FIREBALL], textures[RES_WIZZARD_M], 95)
+	commonSprites.AddSprite(SPRITE_LIZARD, &weapons[WEAPON_MONSTER_CLAW], textures[RES_ZIGGY_M], 120)
 
-	// // Baddies
-	// initCommonSprite(&commonSprites[SPRITE_TINY_ZOMBIE], &wp.weapons[wp.WEAPON_MONSTER_CLAW2], RES_TINY_ZOMBIE, 50);
-	// initCommonSprite(&commonSprites[SPRITE_GOBLIN], &wp.weapons[wp.WEAPON_MONSTER_CLAW2], RES_GOBLIN, 100);
-	// initCommonSprite(&commonSprites[SPRITE_IMP], &wp.weapons[wp.WEAPON_MONSTER_CLAW2], RES_IMP, 100);
-	// initCommonSprite(&commonSprites[SPRITE_SKELET], &wp.weapons[wp.WEAPON_MONSTER_CLAW2], RES_SKELET, 100);
-	// initCommonSprite(&commonSprites[SPRITE_MUDDY], &wp.weapons[wp.WEAPON_SOLID], RES_MUDDY, 150);
-	// initCommonSprite(&commonSprites[SPRITE_SWAMPY], &wp.weapons[wp.WEAPON_SOLID_GREEN], RES_SWAMPY, 150);
-	// initCommonSprite(&commonSprites[SPRITE_ZOMBIE], &wp.weapons[wp.WEAPON_MONSTER_CLAW2], RES_ZOMBIE, 120);
-	// initCommonSprite(&commonSprites[SPRITE_ICE_ZOMBIE], &wp.weapons[wp.WEAPON_ICEPICK], RES_ICE_ZOMBIE, 120);
-	// initCommonSprite(&commonSprites[SPRITE_MASKED_ORC], &wp.weapons[wp.WEAPON_THROW_AXE], RES_MASKED_ORC, 120);
-	// initCommonSprite(&commonSprites[SPRITE_ORC_WARRIOR], &wp.weapons[wp.WEAPON_MONSTER_CLAW2], RES_ORC_WARRIOR, 200);
-	// initCommonSprite(&commonSprites[SPRITE_ORC_SHAMAN], &wp.weapons[wp.WEAPON_MONSTER_CLAW2], RES_ORC_SHAMAN, 120);
-	// initCommonSprite(&commonSprites[SPRITE_NECROMANCER], &wp.weapons[wp.WEAPON_PURPLE_BALL], RES_NECROMANCER, 120);
-	// initCommonSprite(&commonSprites[SPRITE_WOGOL], &wp.weapons[wp.WEAPON_MONSTER_CLAW2], RES_WOGOL, 150);
-	// initCommonSprite(&commonSprites[SPRITE_CHROT], &wp.weapons[wp.WEAPON_MONSTER_CLAW2], RES_CHORT, 150);
-	// initCommonSprite(&commonSprites[SPRITE_GREEN_HOOD_SKEL], &wp.weapons[wp.WEAPON_PURPLE_BALL], RES_GREEN_HOOD_SKEL, 150);
+	// Baddies
+	commonSprites.AddSprite(SPRITE_TINY_ZOMBIE, &weapons[WEAPON_MONSTER_CLAW2], textures[RES_TINY_ZOMBIE], 50)
+	commonSprites.AddSprite(SPRITE_GOBLIN, &weapons[WEAPON_MONSTER_CLAW2], textures[RES_GOBLIN], 100)
+	commonSprites.AddSprite(SPRITE_IMP, &weapons[WEAPON_MONSTER_CLAW2], textures[RES_IMP], 100)
+	commonSprites.AddSprite(SPRITE_SKELET, &weapons[WEAPON_MONSTER_CLAW2], textures[RES_SKELET], 100)
+	commonSprites.AddSprite(SPRITE_MUDDY, &weapons[WEAPON_SOLID], textures[RES_MUDDY], 150)
+	commonSprites.AddSprite(SPRITE_SWAMPY, &weapons[WEAPON_SOLID_GREEN], textures[RES_SWAMPY], 150)
+	commonSprites.AddSprite(SPRITE_ZOMBIE, &weapons[WEAPON_MONSTER_CLAW2], textures[RES_ZOMBIE], 120)
+	commonSprites.AddSprite(SPRITE_ICE_ZOMBIE, &weapons[WEAPON_ICEPICK], textures[RES_ICE_ZOMBIE], 120)
+	commonSprites.AddSprite(SPRITE_MASKED_ORC, &weapons[WEAPON_THROW_AXE], textures[RES_MASKED_ORC], 120)
+	commonSprites.AddSprite(SPRITE_ORC_WARRIOR, &weapons[WEAPON_MONSTER_CLAW2], textures[RES_ORC_WARRIOR], 200)
+	commonSprites.AddSprite(SPRITE_ORC_SHAMAN, &weapons[WEAPON_MONSTER_CLAW2], textures[RES_ORC_SHAMAN], 120)
+	commonSprites.AddSprite(SPRITE_NECROMANCER, &weapons[WEAPON_PURPLE_BALL], textures[RES_NECROMANCER], 120)
+	commonSprites.AddSprite(SPRITE_WOGOL, &weapons[WEAPON_MONSTER_CLAW2], textures[RES_WOGOL], 150)
+	commonSprites.AddSprite(SPRITE_CHROT, &weapons[WEAPON_MONSTER_CLAW2], textures[RES_CHORT], 150)
+	commonSprites.AddSprite(SPRITE_GREEN_HOOD_SKEL, &weapons[WEAPON_PURPLE_BALL], textures[RES_GREEN_HOOD_SKEL], 150)
 
-	// var now: *spr.Sprite = undefined;
+	commonSprites.AddSprite(SPRITE_BIG_ZOMBIE, &weapons[WEAPON_THUNDER], textures[RES_BIG_ZOMBIE], 3000)
+	commonSprites.GetSprite(SPRITE_BIG_ZOMBIE).dropRate = 100
 
-	// now = &commonSprites[SPRITE_BIG_ZOMBIE];
-	// now.dropRate = 100;
-	// initCommonSprite(now, &wp.weapons[wp.WEAPON_THUNDER], RES_BIG_ZOMBIE, 3000);
+	commonSprites.AddSprite(SPRITE_ORGRE, &weapons[WEAPON_MANY_AXES], textures[RES_ORGRE], 3000)
+	commonSprites.GetSprite(SPRITE_ORGRE).dropRate = 100
 
-	// now = &commonSprites[SPRITE_ORGRE];
-	// now.dropRate = 100;
-	// initCommonSprite(now, &wp.weapons[wp.WEAPON_MANY_AXES], RES_ORGRE, 3000);
-
-	// now = &commonSprites[SPRITE_BIG_DEMON];
-	// now.dropRate = 100;
-	// initCommonSprite(now, &wp.weapons[wp.WEAPON_THUNDER], RES_BIG_DEMON, 2500);
+	commonSprites.AddSprite(SPRITE_BIG_DEMON, &weapons[WEAPON_THUNDER], textures[RES_BIG_DEMON], 2500)
+	commonSprites.GetSprite(SPRITE_BIG_DEMON).dropRate = 100
+	log.Println("| init common sprites - [DONE]")
 }

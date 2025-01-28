@@ -40,7 +40,7 @@ type Text = struct {
 var (
 	Texts         []Text
 	textures      []*Texture
-	commonSprites [1024]Sprite
+	commonSprites SpriteList = CreateSpriteList()
 	effects       []Effect
 	weapons       [WEAPONS_SIZE]Weapon
 	Font          *text.GoTextFaceSource
@@ -285,7 +285,7 @@ func LoadAudio() {
 	log.Println("| load audio - [DONE]")
 }
 
-func initCommonEffects() {
+func InitCommonEffects() {
 	deathEffect := CreateEffect(30, 4, ebiten.BlendDestinationOver)
 	death := color.RGBA{0xff, 0xff, 0xff, 0xff}
 	deathEffect.AddKey(death)
@@ -330,7 +330,7 @@ func initCommonEffects() {
 
 func LoadMedia() error {
 	log.Println("# LOAD MEDIA:")
-	initCommonEffects()
+	InitCommonEffects()
 	loadTileSet()
 	loadFont()
 	loadTextSet()

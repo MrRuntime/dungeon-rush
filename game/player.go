@@ -74,7 +74,7 @@ func appendSpriteToSnake(
 		newX = snakeHead.x
 		newY = snakeHead.y
 		delta := (snakeHead.ani.origin.width*SCALE_FACTOR +
-			commonSprites[spriteId].ani.origin.width*SCALE_FACTOR) / 2
+			commonSprites.GetSprite(spriteId).ani.origin.width*SCALE_FACTOR) / 2
 		if snakeHead.direction == LEFT {
 			newX -= delta
 		} else if snakeHead.direction == RIGHT {
