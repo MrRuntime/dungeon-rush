@@ -100,7 +100,7 @@ func createAndPushAnimation(
 	at AtType,
 ) *Animation {
 	ani := createAnimation(
-		Textures[textureId],
+		textures[textureId],
 		effect,
 		lp,
 		duration,

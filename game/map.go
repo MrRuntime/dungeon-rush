@@ -40,21 +40,21 @@ func initBlock(block *Block, bp BlockType, x int, y int, bid int, enable bool) {
 	if bp == BLOCK_TRAP {
 		var floor_spike int
 		if enable {
-			floor_spike = FLOOR_SPIKE_ENABLED
+			floor_spike = RES_FLOOR_SPIKE_ENABLED
 		} else {
-			floor_spike = FLOOR_SPIKE_DISABLED
+			floor_spike = RES_FLOOR_SPIKE_DISABLED
 		}
-		block.ani = createAnimation(Textures[floor_spike], nil, LOOP_INFI, 1, x, y, FLIP_NONE, 0, AT_TOP_LEFT)
+		block.ani = createAnimation(textures[floor_spike], nil, LOOP_INFI, 1, x, y, FLIP_NONE, 0, AT_TOP_LEFT)
 	} else if bp == BLOCK_EXIT {
 		var floor_spike int
 		if enable {
-			floor_spike = FLOOR_EXIT
+			floor_spike = RES_FLOOR_EXIT
 		} else {
-			floor_spike = FLOOR_2
+			floor_spike = RES_FLOOR_2
 		}
-		block.ani = createAnimation(Textures[floor_spike], nil, LOOP_INFI, 1, x, y, FLIP_NONE, 0, AT_TOP_LEFT)
+		block.ani = createAnimation(textures[floor_spike], nil, LOOP_INFI, 1, x, y, FLIP_NONE, 0, AT_TOP_LEFT)
 	} else {
-		block.ani = createAnimation(Textures[bid], nil, LOOP_INFI, 1, x, y, FLIP_NONE, 0, AT_TOP_LEFT)
+		block.ani = createAnimation(textures[bid], nil, LOOP_INFI, 1, x, y, FLIP_NONE, 0, AT_TOP_LEFT)
 	}
 }
 
@@ -67,7 +67,7 @@ func InitBlankMap(w, h int) {
 			ii := si + i
 			jj := sj + j
 			Has_Map[ii][jj] = true
-			initBlock(&Game_Map[ii][jj], BLOCK_FLOOR, ii*UNIT, jj*UNIT, FLOOR_1, false)
+			initBlock(&Game_Map[ii][jj], BLOCK_FLOOR, ii*UNIT, jj*UNIT, RES_FLOOR_1, false)
 		}
 	}
 	// decorateMap();
@@ -82,31 +82,31 @@ func pushMapToRender() {
 			if !Has_Map[i][j] {
 				if inr(j+1, 0, M-1) && Has_Map[i][j+1] {
 					if inr(i+1, 0, N-1) && Has_Map[i+1][j] {
-						_ = cpa(LIST_MAP_ID, WALL_CORNER_FRONT_RIGHT,
+						_ = cpa(LIST_MAP_ID, RES_WALL_CORNER_FRONT_RIGHT,
 							nil, LOOP_INFI, 1, i*UNIT, j*UNIT, FLIP_NONE, 0, AT_TOP_LEFT)
 
-						_ = cpa(LIST_MAP_ID, WALL_CORNER_BOTTOM_RIGHT,
+						_ = cpa(LIST_MAP_ID, RES_WALL_CORNER_BOTTOM_RIGHT,
 							nil, LOOP_INFI, 1, i*UNIT, (j-1)*UNIT, FLIP_NONE, 0, AT_TOP_LEFT)
 					} else if inr(i-1, 0, N-1) && Has_Map[i-1][j] {
-						_ = cpa(LIST_MAP_ID, WALL_CORNER_FRONT_LEFT,
+						_ = cpa(LIST_MAP_ID, RES_WALL_CORNER_FRONT_LEFT,
 							nil, LOOP_INFI, 1, i*UNIT, j*UNIT, FLIP_NONE, 0, AT_TOP_LEFT)
 
-						_ = cpa(LIST_MAP_ID, WALL_CORNER_BOTTOM_LEFT,
+						_ = cpa(LIST_MAP_ID, RES_WALL_CORNER_BOTTOM_LEFT,
 							nil, LOOP_INFI, 1, i*UNIT, (j-1)*UNIT, FLIP_NONE, 0, AT_TOP_LEFT)
 					} else {
 						var bid int
 						if randDouble() < MAP_HOW_OLD*5 {
-							bid = WALL_HOLE_1 + randInt(0, 1)
+							bid = RES_WALL_HOLE_1 + randInt(0, 1)
 						} else {
-							bid = WALL_MID
+							bid = RES_WALL_MID
 						}
 						if randDouble() < MAP_WALL_HOW_DECORATED {
-							bid = WALL_BANNER_RED + randInt(0, 3)
+							bid = RES_WALL_BANNER_RED + randInt(0, 3)
 						}
 						_ = cpa(LIST_MAP_ID, int(bid), nil, LOOP_INFI, 1,
 							i*UNIT, j*UNIT, FLIP_NONE, 0, AT_TOP_LEFT)
 
-						_ = cpa(LIST_MAP_ID, WALL_TOP_MID, nil, LOOP_INFI,
+						_ = cpa(LIST_MAP_ID, RES_WALL_TOP_MID, nil, LOOP_INFI,
 							1, i*UNIT, (j-1)*UNIT, FLIP_NONE, 0, AT_TOP_LEFT)
 					}
 				}
@@ -114,23 +114,23 @@ func pushMapToRender() {
 					var bid int
 
 					if randDouble() < MAP_HOW_OLD*2 {
-						bid = WALL_HOLE_1 + randInt(0, 1)
+						bid = RES_WALL_HOLE_1 + randInt(0, 1)
 					} else {
-						bid = WALL_MID
+						bid = RES_WALL_MID
 					}
 					_ = cpa(LIST_MAP_ID, int(bid), nil, LOOP_INFI, 1,
 						i*UNIT, j*UNIT, FLIP_NONE, 0, AT_TOP_LEFT)
 
 					if Has_Map[i-1][j] {
-						_ = cpa(LIST_MAP_FOREWALL, WALL_CORNER_TOP_LEFT,
+						_ = cpa(LIST_MAP_FOREWALL, RES_WALL_CORNER_TOP_LEFT,
 							nil, LOOP_INFI, 1, i*UNIT, (j-1)*UNIT,
 							FLIP_NONE, 0, AT_TOP_LEFT)
 					} else if Has_Map[i+1][j] {
-						_ = cpa(LIST_MAP_FOREWALL, WALL_CORNER_TOP_RIGHT,
+						_ = cpa(LIST_MAP_FOREWALL, RES_WALL_CORNER_TOP_RIGHT,
 							nil, LOOP_INFI, 1, i*UNIT, (j-1)*UNIT,
 							FLIP_NONE, 0, AT_TOP_LEFT)
 					} else {
-						_ = cpa(LIST_MAP_FOREWALL, WALL_TOP_MID,
+						_ = cpa(LIST_MAP_FOREWALL, RES_WALL_TOP_MID,
 							nil, LOOP_INFI, 1, i*UNIT, (j-1)*UNIT,
 							FLIP_NONE, 0, AT_TOP_LEFT)
 					}
@@ -139,21 +139,21 @@ func pushMapToRender() {
 					if inr(j+1, 0, M-1) && Has_Map[i][j+1] {
 						// just do not render
 					} else {
-						_ = cpa(LIST_MAP_ID, WALL_SIDE_MID_LEFT,
+						_ = cpa(LIST_MAP_ID, RES_WALL_SIDE_MID_LEFT,
 							nil, LOOP_INFI, 1, i*UNIT, j*UNIT,
 							FLIP_NONE, 0, AT_TOP_LEFT)
 					}
 					if !Has_Map[i+1][j+1] {
-						_ = cpa(LIST_MAP_ID, WALL_SIDE_FRONT_LEFT,
+						_ = cpa(LIST_MAP_ID, RES_WALL_SIDE_FRONT_LEFT,
 							nil, LOOP_INFI, 1, i*UNIT, (j+1)*UNIT,
 							FLIP_NONE, 0, AT_TOP_LEFT)
 					}
 					if !Has_Map[i+1][j-1] {
-						_ = cpa(LIST_MAP_ID, WALL_SIDE_MID_LEFT,
+						_ = cpa(LIST_MAP_ID, RES_WALL_SIDE_MID_LEFT,
 							nil, LOOP_INFI, 1, i*UNIT, (j-1)*UNIT,
 							FLIP_NONE, 0, AT_TOP_LEFT)
 
-						_ = cpa(LIST_MAP_ID, WALL_SIDE_TOP_LEFT,
+						_ = cpa(LIST_MAP_ID, RES_WALL_SIDE_TOP_LEFT,
 							nil, LOOP_INFI, 1, i*UNIT, (j-2)*UNIT,
 							FLIP_NONE, 0, AT_TOP_LEFT)
 					}
@@ -162,21 +162,21 @@ func pushMapToRender() {
 					if inr(j+1, 0, M-1) && Has_Map[i][j+1] {
 						// just do not render
 					} else {
-						_ = cpa(LIST_MAP_ID, WALL_SIDE_MID_RIGHT,
+						_ = cpa(LIST_MAP_ID, RES_WALL_SIDE_MID_RIGHT,
 							nil, LOOP_INFI, 1, i*UNIT, j*UNIT,
 							FLIP_NONE, 0, AT_TOP_LEFT)
 					}
 					if !Has_Map[i-1][j+1] {
-						_ = cpa(LIST_MAP_ID, WALL_SIDE_FRONT_RIGHT,
+						_ = cpa(LIST_MAP_ID, RES_WALL_SIDE_FRONT_RIGHT,
 							nil, LOOP_INFI, 1, i*UNIT, (j+1)*UNIT,
 							FLIP_NONE, 0, AT_TOP_LEFT)
 					}
 					if !Has_Map[i-1][j-1] {
-						_ = cpa(LIST_MAP_ID, WALL_SIDE_MID_RIGHT,
+						_ = cpa(LIST_MAP_ID, RES_WALL_SIDE_MID_RIGHT,
 							nil, LOOP_INFI, 1, i*UNIT, (j-1)*UNIT,
 							FLIP_NONE, 0, AT_TOP_LEFT)
 
-						_ = cpa(LIST_MAP_ID, WALL_SIDE_TOP_RIGHT,
+						_ = cpa(LIST_MAP_ID, RES_WALL_SIDE_TOP_RIGHT,
 							nil, LOOP_INFI, 1, i*UNIT, (j-2)*UNIT,
 							FLIP_NONE, 0, AT_TOP_LEFT)
 					}

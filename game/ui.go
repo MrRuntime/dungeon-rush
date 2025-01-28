@@ -38,7 +38,7 @@ func mainUI() {
 	// Knight
 	_ = cpa(
 		LIST_SPRITE_ID,
-		KNIGHT_M,
+		RES_KNIGHT_M,
 		nil,
 		LOOP_INFI,
 		SPRITE_ANIMATION_DURATION,
@@ -52,7 +52,7 @@ func mainUI() {
 	// Sword effect
 	ani := cpa(
 		LIST_EFFECT_ID,
-		SWORD_FX,
+		RES_SWORDFX,
 		nil,
 		LOOP_INFI,
 		SPRITE_ANIMATION_DURATION,
@@ -67,7 +67,7 @@ func mainUI() {
 	// Red bad-guy (Knight enemy)
 	_ = cpa(
 		LIST_SPRITE_ID,
-		CHORT,
+		RES_CHORT,
 		nil,
 		LOOP_INFI,
 		SPRITE_ANIMATION_DURATION,
@@ -84,7 +84,7 @@ func mainUI() {
 	// Green elf
 	_ = cpa(
 		LIST_SPRITE_ID,
-		ELF_M,
+		RES_ELF_M,
 		nil,
 		LOOP_INFI,
 		SPRITE_ANIMATION_DURATION,
@@ -96,7 +96,7 @@ func mainUI() {
 	)
 	_ = cpa(
 		LIST_EFFECT_ID,
-		HALO_EXPLOSION2,
+		RES_HALO_EXPLOSION2,
 		nil,
 		LOOP_INFI,
 		SPRITE_ANIMATION_DURATION,
@@ -108,7 +108,7 @@ func mainUI() {
 	)
 	_ = cpa(
 		LIST_SPRITE_ID,
-		ZOMBIE,
+		RES_ZOMBIE,
 		nil,
 		LOOP_INFI,
 		SPRITE_ANIMATION_DURATION,
@@ -125,7 +125,7 @@ func mainUI() {
 	// Blue wizard and fireball.
 	_ = cpa(
 		LIST_SPRITE_ID,
-		WIZZARD_M,
+		RES_WIZZARD_M,
 		nil,
 		LOOP_INFI,
 		SPRITE_ANIMATION_DURATION,
@@ -137,7 +137,7 @@ func mainUI() {
 	)
 	_ = cpa(
 		LIST_EFFECT_ID,
-		FIREBALL,
+		RES_FIREBALL,
 		nil,
 		LOOP_INFI,
 		SPRITE_ANIMATION_DURATION,
@@ -153,7 +153,7 @@ func mainUI() {
 
 	_ = cpa(
 		LIST_SPRITE_ID,
-		ZIGGY_M,
+		RES_ZIGGY_M,
 		nil,
 		LOOP_INFI,
 		SPRITE_ANIMATION_DURATION,
@@ -165,7 +165,7 @@ func mainUI() {
 	)
 	_ = cpa(
 		LIST_EFFECT_ID,
-		CLAWFX2,
+		RES_CLAWFX2,
 		nil,
 		LOOP_INFI,
 		SPRITE_ANIMATION_DURATION,
@@ -177,7 +177,7 @@ func mainUI() {
 	)
 	_ = cpa(
 		LIST_SPRITE_ID,
-		MUDDY,
+		RES_MUDDY,
 		nil,
 		LOOP_INFI,
 		SPRITE_ANIMATION_DURATION,
@@ -190,7 +190,7 @@ func mainUI() {
 
 	_ = cpa(
 		LIST_EFFECT_ID,
-		CLAWFX2,
+		RES_CLAWFX2,
 		nil,
 		LOOP_INFI,
 		SPRITE_ANIMATION_DURATION,
@@ -202,7 +202,7 @@ func mainUI() {
 	)
 	_ = cpa(
 		LIST_SPRITE_ID,
-		SWAMPY,
+		RES_SWAMPY,
 		nil,
 		LOOP_INFI,
 		SPRITE_ANIMATION_DURATION,
@@ -215,7 +215,7 @@ func mainUI() {
 
 	_ = cpa(
 		LIST_EFFECT_ID,
-		CLAWFX2,
+		RES_CLAWFX2,
 		nil,
 		LOOP_INFI,
 		SPRITE_ANIMATION_DURATION,
@@ -227,7 +227,7 @@ func mainUI() {
 	)
 	_ = cpa(
 		LIST_SPRITE_ID,
-		SWAMPY,
+		RES_SWAMPY,
 		nil,
 		LOOP_INFI,
 		SPRITE_ANIMATION_DURATION,

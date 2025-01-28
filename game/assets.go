@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"encoding/csv"
 	"fmt"
+	"image"
 	"image/color"
 	"io"
 	"log"
@@ -19,17 +20,13 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 )
 
-type Crop struct {
-	x, y int
-	w, h int
-}
-
 type Texture struct {
+	name   string
 	origin *ebiten.Image
 	width  int
 	height int
 	frames int
-	crops  []Crop
+	crops  []image.Rectangle
 }
 
 type Text = struct {
@@ -42,8 +39,8 @@ type Text = struct {
 
 var (
 	Texts         []Text
-	Textures      []*Texture
-	commonSprites []Sprite
+	textures      []*Texture
+	commonSprites [1024]Sprite
 	effects       []Effect
 	weapons       [WEAPONS_SIZE]Weapon
 	Font          *text.GoTextFaceSource
@@ -134,8 +131,7 @@ var soundfxList = []string{
 
 var sounds [][]byte
 
-func initTileSet(csvPath string, origin *ebiten.Image) {
-	// debugLogger := log.New(os.Stderr, "DEBUG: ", log.Ldate|log.Ltime|log.Lshortfile)
+func InitTileSet(csvPath string, origin *ebiten.Image) {
 	file, err := os.Open(csvPath)
 	if err != nil {
 		fmt.Println(err)
@@ -149,26 +145,24 @@ func initTileSet(csvPath string, origin *ebiten.Image) {
 
 	for _, line := range lines {
 		if len(strings.TrimSpace(line[0])) > 0 && line[0] != "#" {
-			// name := line[0]
+			name := line[0]
 			x, err := strconv.Atoi(line[1])
 			y, err := strconv.Atoi(line[2])
 			w, err := strconv.Atoi(line[3])
 			h, err := strconv.Atoi(line[4])
 			fc, err := strconv.Atoi(line[5])
+
 			if err != nil {
 				panic(err)
 			}
-			texture := &Texture{
-				origin, w, h, fc, make([]Crop, fc),
+			texture := &Texture{name, origin, w, h, fc, make([]image.Rectangle, fc)}
+
+			for i := range fc {
+				xx := x + i*w
+				texture.crops[i] = image.Rect(xx, y, w+xx, h+y)
 			}
-			for j := 0; j <= fc-1; j++ {
-				texture.crops[j].x = x + j*w
-				texture.crops[j].y = y
-				texture.crops[j].w = w
-				texture.crops[j].h = h
-			}
-			Textures = append(Textures, texture)
-			// debugLogger.Println("name:", name, " x:", x, " y:", y, " w:", w, " h:", h, " fc:", fc)
+
+			textures = append(textures, texture)
 		}
 	}
 }
@@ -178,7 +172,7 @@ func loadTileSet() {
 		csvPath := fmt.Sprintf("assets/images/%s", it)
 		imgPath := fmt.Sprintf("assets/images/%s.png", it)
 		origin, _, _ := ebitenutil.NewImageFromFile(imgPath)
-		initTileSet(csvPath, origin)
+		InitTileSet(csvPath, origin)
 	}
 	log.Println("| load tileset - [DONE]")
 }
