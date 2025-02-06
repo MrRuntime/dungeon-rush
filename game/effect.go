@@ -23,12 +23,11 @@ func (e *Effect) AddKey(key color.RGBA) {
 }
 
 func (e *Effect) copy() *Effect {
-	newEffect := &Effect{
+	return &Effect{
 		duration:     e.duration,
 		currentFrame: e.currentFrame,
 		length:       e.length,
 		keys:         e.keys,
 		mode:         e.mode,
 	}
-	return newEffect
 }

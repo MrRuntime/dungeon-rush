@@ -44,10 +44,10 @@ type Animation struct {
 	angle        float64
 	flip         FlipType
 	scaled       bool
-	at           AtType // align
-	bindTo       *any
-	dieWithBind  bool // force kill anim
-	lifeSpan     int  //anim play in secs
+	at           AtType  // align
+	bindTo       *Sprite // any or interface{}
+	dieWithBind  bool    // force kill anim
+	lifeSpan     int     //anim play in secs
 }
 
 var renderFrames uint = 0

@@ -37,16 +37,24 @@ type Text = struct {
 	color  color.RGBA
 }
 
-var (
-	Texts         []Text
-	textures      []*Texture
-	commonSprites SpriteList = CreateSpriteList()
-	effects       []Effect
-	weapons       [WEAPONS_SIZE]Weapon
-	Font          *text.GoTextFaceSource
-)
+type Font = *text.GoTextFaceSource
 
-var TextList = []string{
+type Audio struct {
+	sounds [][]byte
+	bgms   [][]byte
+}
+
+type Assets struct {
+	texts         []Text
+	textures      []*Texture
+	commonSprites SpriteList
+	effects       []Effect
+	weapons       []Weapon
+	font          Font
+	audio         Audio
+}
+
+var textList = []string{
 	"DungeonRush",
 	"By Rapiz",
 	"PLACEHOLDER",
@@ -86,8 +94,6 @@ var bgmsPath = []string{
 	"assets/audio/bg2.ogg",
 	"assets/audio/bg3.ogg",
 }
-
-var bgms [][]byte
 
 // More: https://microstudio.dev/community/resources/essential-retro-video-game-sound-effects-collection-512-sounds/181/
 var soundfxList = []string{
@@ -129,14 +135,14 @@ var soundfxList = []string{
 	"bowhit.wav",
 }
 
-var sounds [][]byte
-
-func InitTileSet(csvPath string, origin *ebiten.Image) {
+func InitTileSet(csvPath string, origin *ebiten.Image) ([]*Texture, error) {
 	file, err := os.Open(csvPath)
 	if err != nil {
-		fmt.Println(err)
+		return nil, err
 	}
 	defer file.Close()
+
+	t := make([]*Texture, 0)
 
 	reader := csv.NewReader(file)
 	reader.Comma = ' '
@@ -162,23 +168,31 @@ func InitTileSet(csvPath string, origin *ebiten.Image) {
 				texture.crops[i] = image.Rect(xx, y, w+xx, h+y)
 			}
 
-			textures = append(textures, texture)
+			t = append(t, texture)
 		}
 	}
+	return t, err
 }
 
-func loadTileSet() {
+func LoadTileSet() ([]*Texture, error) {
+	var t []*Texture
+	var err error
 	for _, it := range tilesetName {
 		csvPath := fmt.Sprintf("assets/images/%s", it)
 		imgPath := fmt.Sprintf("assets/images/%s.png", it)
 		origin, _, _ := ebitenutil.NewImageFromFile(imgPath)
-		InitTileSet(csvPath, origin)
+		t, err = InitTileSet(csvPath, origin)
+		if err != nil {
+			return nil, err
+		}
 	}
 	log.Println("| load tileset - [DONE]")
+	return t, nil
 }
 
-func loadFont() {
+func LoadFont() (Font, error) {
 	var err error
+
 	file, err := os.Open("assets/font/m5x7.ttf")
 	if err != nil {
 		log.Fatalf("Failed to open font file: %v", err)
@@ -195,16 +209,16 @@ func loadFont() {
 		log.Fatalf("Failed to create font source: %v", err)
 	}
 
-	Font = s
 	log.Println("| load font - [DONE]")
+	return s, nil
 }
 
-func loadTextSet() {
-	// TODO: handle error
-	for _, str := range TextList {
-		f := &text.GoTextFace{Source: Font, Size: 24}
+func LoadTextSet(font Font) []Text {
+	texts := []Text{}
+	for _, str := range textList {
+		f := &text.GoTextFace{Source: font, Size: 24}
 		w, h := text.Measure(str, f, 0)
-		Texts = append(Texts, Text{
+		texts = append(texts, Text{
 			origin: f,
 			text:   str,
 			width:  w,
@@ -213,9 +227,10 @@ func loadTextSet() {
 		})
 	}
 	log.Println("| load textset - [DONE]")
+	return texts
 }
 
-func loadOgg(audioPath string) {
+func loadOgg(audioPath string) ([]byte, error) {
 	file, err := os.Open(audioPath)
 	if err != nil {
 		log.Fatalf("Failed to open audio file [%v]: %v", file.Name(), err)
@@ -241,11 +256,10 @@ func loadOgg(audioPath string) {
 		log.Fatalf("Failed to read bytes from file [%v]: %v", file.Name(), err)
 	}
 
-	// fmt.Printf("[%v]: %v\n", file.Name(), b)
-	bgms = append(bgms, b)
+	return b, nil
 }
 
-func loadWav(audioPath string) {
+func loadWav(audioPath string) ([]byte, error) {
 	file, err := os.Open(audioPath)
 	if err != nil {
 		log.Fatalf("Failed to open wav file [%v]: %v", file.Name(), err)
@@ -271,21 +285,30 @@ func loadWav(audioPath string) {
 		log.Fatalf("Failed to read bytes from file [%v]: %v", file.Name(), err)
 	}
 
-	// fmt.Printf("[%v]: %v\n", file.Name(), b)
-	sounds = append(sounds, b)
+	return b, nil
 }
 
-func LoadAudio() {
+func LoadAudio() (Audio, error) {
+	a := Audio{}
 	for _, it := range bgmsPath {
-		loadOgg(it)
+		tmp, err := loadOgg(it)
+		if err != nil {
+			return a, err
+		}
+		a.bgms = append(a.bgms, tmp)
 	}
 	for _, it := range soundfxList {
-		loadWav(fmt.Sprintf("assets/audio/%s", it))
+		tmp, err := loadWav(fmt.Sprintf("assets/audio/%s", it))
+		if err != nil {
+			return a, err
+		}
+		a.sounds = append(a.sounds, tmp)
 	}
 	log.Println("| load audio - [DONE]")
+	return a, nil
 }
 
-func InitCommonEffects() {
+func (a *Assets) InitCommonEffects() {
 	deathEffect := CreateEffect(30, 4, ebiten.BlendDestinationOver)
 	death := color.RGBA{0xff, 0xff, 0xff, 0xff}
 	deathEffect.AddKey(death)
@@ -301,7 +324,7 @@ func InitCommonEffects() {
 	death.R = 0x0
 	death.A = 0x0
 	deathEffect.AddKey(death)
-	effects = append(effects, deathEffect)
+	a.effects = append(a.effects, deathEffect)
 	// log.Println("| effect #0: Death (30frames) loaded")
 
 	blinkEffect := CreateEffect(30, 3, ebiten.BlendLighter)
@@ -315,7 +338,7 @@ func InitCommonEffects() {
 	blink.G = 0x0
 	blink.B = 0x0
 	blinkEffect.AddKey(blink)
-	effects = append(effects, blinkEffect)
+	a.effects = append(a.effects, blinkEffect)
 	// log.Println("| effect #1: Blink (white) (30frames) loaded")
 
 	vanishEffect := CreateEffect(30, 2, ebiten.BlendDestinationOver)
@@ -323,20 +346,250 @@ func InitCommonEffects() {
 	vanishEffect.AddKey(vanish)
 	vanish.A = 0x0
 	vanishEffect.AddKey(vanish)
-	effects = append(effects, vanishEffect)
+	a.effects = append(a.effects, vanishEffect)
 	// log.Println("| effect #2: Vanish (30frames) loaded")
 	log.Println("| load effects - [DONE]")
 }
 
-func LoadMedia() error {
+func (a *Assets) InitWeapons() {
+	a.weapons[WEAPON_SWORD].InitWeapon(a.textures, NONE, RES_SWORDFX, NONE)
+	a.weapons[WEAPON_SWORD].damage = 30
+	a.weapons[WEAPON_SWORD].shootRange = 32 * 3
+	a.weapons[WEAPON_SWORD].deathAni.scaled = false
+	a.weapons[WEAPON_SWORD].deathAni.angle = -1.0
+	a.weapons[WEAPON_SWORD].deathAudio = AUDIO_SWORD_HIT
+
+	a.weapons[WEAPON_MONSTER_CLAW].InitWeapon(a.textures, NONE, RES_CLAWFX2, NONE)
+	a.weapons[WEAPON_MONSTER_CLAW].wp = WEAPON_SWORD_RANGE
+	a.weapons[WEAPON_MONSTER_CLAW].shootRange = 32*3 + 16
+	a.weapons[WEAPON_MONSTER_CLAW].damage = 24
+	a.weapons[WEAPON_MONSTER_CLAW].deathAni.angle = -1.0
+	a.weapons[WEAPON_MONSTER_CLAW].deathAni.at = AT_CENTER
+	a.weapons[WEAPON_MONSTER_CLAW].deathAudio = AUDIO_CLAW_HIT_HEAVY
+
+	a.weapons[WEAPON_FIREBALL].InitWeapon(a.textures, RES_SHINE, RES_HALO_EXPLOSION1, RES_FIREBALL)
+	a.weapons[WEAPON_FIREBALL].wp = WEAPON_GUN_RANGE
+	a.weapons[WEAPON_FIREBALL].damage = 45
+	a.weapons[WEAPON_FIREBALL].effectRange = 50
+	a.weapons[WEAPON_FIREBALL].shootRange = 256
+	a.weapons[WEAPON_FIREBALL].gap = 180
+	a.weapons[WEAPON_FIREBALL].deathAni.angle = -1.0
+	a.weapons[WEAPON_FIREBALL].deathAni.at = AT_CENTER
+	a.weapons[WEAPON_FIREBALL].birthAni.duration = 24
+	a.weapons[WEAPON_FIREBALL].birthAudio = AUDIO_SHOOT
+	a.weapons[WEAPON_FIREBALL].deathAudio = AUDIO_FIREBALL_EXP
+
+	a.weapons[WEAPON_THUNDER].InitWeapon(a.textures, RES_BLOODBOUND, RES_THUNDER, NONE)
+	a.weapons[WEAPON_THUNDER].wp = WEAPON_SWORD_RANGE
+	a.weapons[WEAPON_THUNDER].damage = 80
+	a.weapons[WEAPON_THUNDER].shootRange = 128
+	a.weapons[WEAPON_THUNDER].gap = 120
+	a.weapons[WEAPON_THUNDER].deathAni.angle = -1
+	a.weapons[WEAPON_THUNDER].deathAni.scaled = false
+	a.weapons[WEAPON_THUNDER].deathAudio = AUDIO_THUNDER
+
+	a.weapons[WEAPON_THUNDER_STAFF].InitWeapon(a.textures, NONE, RES_THUNDER_YELLOW, NONE)
+	a.weapons[WEAPON_THUNDER_STAFF].wp = WEAPON_SWORD_RANGE
+	a.weapons[WEAPON_THUNDER_STAFF].damage = 50
+	a.weapons[WEAPON_THUNDER_STAFF].shootRange = 128
+	a.weapons[WEAPON_THUNDER_STAFF].gap = 120
+	a.weapons[WEAPON_THUNDER_STAFF].deathAni.angle = -1
+	a.weapons[WEAPON_THUNDER_STAFF].deathAni.scaled = false
+	a.weapons[WEAPON_THUNDER_STAFF].deathAudio = AUDIO_THUNDER
+
+	a.weapons[WEAPON_ARROW].InitWeapon(a.textures, NONE, RES_HALO_EXPLOSION2, RES_ARROW)
+	a.weapons[WEAPON_ARROW].wp = WEAPON_GUN_POINT
+	a.weapons[WEAPON_ARROW].gap = 40
+	a.weapons[WEAPON_ARROW].damage = 10
+	a.weapons[WEAPON_ARROW].shootRange = 200
+	a.weapons[WEAPON_ARROW].bulletSpeed = 10
+	a.weapons[WEAPON_ARROW].deathAni.angle = -1
+	a.weapons[WEAPON_ARROW].deathAni.at = AT_CENTER
+	a.weapons[WEAPON_ARROW].flyAni.scaled = false
+	a.weapons[WEAPON_ARROW].birthAudio = AUDIO_BOW_FIRE
+	a.weapons[WEAPON_ARROW].deathAudio = AUDIO_BOW_HIT
+
+	a.weapons[WEAPON_POWERFUL_BOW].InitWeapon(a.textures, NONE, RES_HALO_EXPLOSION2, RES_ARROW)
+	a.weapons[WEAPON_POWERFUL_BOW].wp = WEAPON_GUN_POINT
+	a.weapons[WEAPON_POWERFUL_BOW].gap = 60
+	a.weapons[WEAPON_POWERFUL_BOW].damage = 25
+	a.weapons[WEAPON_POWERFUL_BOW].shootRange = 320
+	a.weapons[WEAPON_POWERFUL_BOW].bulletSpeed = 7
+	a.weapons[WEAPON_POWERFUL_BOW].deathAni.angle = -1
+	a.weapons[WEAPON_POWERFUL_BOW].deathAni.at = AT_CENTER
+	a.weapons[WEAPON_POWERFUL_BOW].birthAudio = AUDIO_BOW_FIRE
+	a.weapons[WEAPON_POWERFUL_BOW].deathAudio = AUDIO_BOW_HIT
+	a.weapons[WEAPON_POWERFUL_BOW].effects[BUFF_ATTACK] = WeaponBuff{chance: 0.5, duration: 240}
+
+	a.weapons[WEAPON_MONSTER_CLAW2].InitWeapon(a.textures, NONE, RES_CLAWFX, NONE)
+
+	a.weapons[WEAPON_THROW_AXE].InitWeapon(a.textures, NONE, RES_CROSS_HIT, RES_AXE)
+	a.weapons[WEAPON_THROW_AXE].wp = WEAPON_GUN_POINT
+	a.weapons[WEAPON_THROW_AXE].damage = 12
+	a.weapons[WEAPON_THROW_AXE].shootRange = 160
+	a.weapons[WEAPON_THROW_AXE].bulletSpeed = 10
+	a.weapons[WEAPON_THROW_AXE].flyAni.duration = 24
+	a.weapons[WEAPON_THROW_AXE].flyAni.angle = -1
+	a.weapons[WEAPON_THROW_AXE].flyAni.scaled = false
+	a.weapons[WEAPON_THROW_AXE].deathAni.scaled = false
+	a.weapons[WEAPON_THROW_AXE].deathAni.at = AT_CENTER
+	a.weapons[WEAPON_THROW_AXE].birthAudio = AUDIO_AXE_FLY //res.AUDIO_LIGHT_SHOOT
+	a.weapons[WEAPON_THROW_AXE].deathAudio = AUDIO_ARROW_HIT
+
+	a.weapons[WEAPON_MANY_AXES].InitWeapon(a.textures, NONE, RES_CROSS_HIT, RES_AXE)
+	a.weapons[WEAPON_MANY_AXES].wp = WEAPON_GUN_POINT_MULTI
+	a.weapons[WEAPON_MANY_AXES].shootRange = 180
+	a.weapons[WEAPON_MANY_AXES].gap = 70
+	a.weapons[WEAPON_MANY_AXES].effectRange = 50
+	a.weapons[WEAPON_MANY_AXES].damage = 50
+	a.weapons[WEAPON_MANY_AXES].bulletSpeed = 4
+	a.weapons[WEAPON_MANY_AXES].flyAni.duration = 24
+	a.weapons[WEAPON_MANY_AXES].flyAni.angle = -1
+	a.weapons[WEAPON_MANY_AXES].deathAni.at = AT_CENTER
+	a.weapons[WEAPON_MANY_AXES].birthAudio = AUDIO_AXE_FLY //res.AUDIO_LIGHT_SHOOT;res.AUDIO_LIGHT_SHOOT
+	a.weapons[WEAPON_MANY_AXES].deathAudio = AUDIO_ARROW_HIT
+
+	a.weapons[WEAPON_SOLID].InitWeapon(a.textures, NONE, RES_SOLIDFX, NONE)
+	a.weapons[WEAPON_SOLID].deathAni.scaled = false
+	a.weapons[WEAPON_SOLID].deathAni.angle = -1
+	a.weapons[WEAPON_SOLID].effects[BUFF_SLOWDOWN] = WeaponBuff{chance: 0.3, duration: 180}
+
+	a.weapons[WEAPON_SOLID_GREEN].InitWeapon(a.textures, NONE, RES_SOLID_GREENFX, NONE)
+	a.weapons[WEAPON_SOLID_GREEN].shootRange = 96
+	a.weapons[WEAPON_SOLID_GREEN].deathAni.scaled = false
+	a.weapons[WEAPON_SOLID_GREEN].deathAni.angle = -1
+	a.weapons[WEAPON_SOLID_GREEN].effects[BUFF_SLOWDOWN] = WeaponBuff{chance: 0.3, duration: 180}
+
+	a.weapons[WEAPON_SOLID_CLAW].InitWeapon(a.textures, NONE, RES_SOLID_GREENFX, NONE)
+	a.weapons[WEAPON_SOLID_CLAW].wp = WEAPON_SWORD_RANGE
+	a.weapons[WEAPON_SOLID_CLAW].shootRange = 32*3 + 16
+	a.weapons[WEAPON_SOLID_CLAW].damage = 35
+	a.weapons[WEAPON_SOLID_CLAW].deathAni.scaled = false
+	a.weapons[WEAPON_SOLID_CLAW].deathAni.angle = -1
+	a.weapons[WEAPON_SOLID_CLAW].deathAudio = AUDIO_CLAW_HIT_HEAVY
+	a.weapons[WEAPON_SOLID_CLAW].effects[BUFF_SLOWDOWN] = WeaponBuff{chance: 0.7, duration: 60}
+
+	a.weapons[WEAPON_ICEPICK].InitWeapon(a.textures, NONE, RES_ICESHATTER, RES_ICEPICK)
+	a.weapons[WEAPON_ICEPICK].wp = WEAPON_GUN_RANGE
+	a.weapons[WEAPON_ICEPICK].damage = 30
+	a.weapons[WEAPON_ICEPICK].effectRange = 50
+	a.weapons[WEAPON_ICEPICK].shootRange = 256
+	a.weapons[WEAPON_ICEPICK].gap = 180
+	a.weapons[WEAPON_ICEPICK].bulletSpeed = 8
+	a.weapons[WEAPON_ICEPICK].deathAni.angle = -1
+	a.weapons[WEAPON_ICEPICK].flyAni.scaled = false
+	a.weapons[WEAPON_ICEPICK].deathAni.at = AT_CENTER
+	a.weapons[WEAPON_ICEPICK].effects[BUFF_FROZEN] = WeaponBuff{chance: 0.2, duration: 60}
+	a.weapons[WEAPON_ICEPICK].birthAudio = AUDIO_ICE_SHOOT
+
+	a.weapons[WEAPON_PURPLE_BALL].InitWeapon(a.textures, NONE, RES_PURPLE_EXP, RES_PURPLE_BALL)
+	a.weapons[WEAPON_PURPLE_BALL].wp = WEAPON_GUN_RANGE
+	a.weapons[WEAPON_PURPLE_BALL].damage = 20
+	a.weapons[WEAPON_PURPLE_BALL].effectRange = 50
+	a.weapons[WEAPON_PURPLE_BALL].shootRange = 256
+	a.weapons[WEAPON_PURPLE_BALL].gap = 100
+	a.weapons[WEAPON_PURPLE_BALL].bulletSpeed = 6
+	a.weapons[WEAPON_PURPLE_BALL].deathAni.angle = -1
+	a.weapons[WEAPON_PURPLE_BALL].deathAni.scaled = false
+	a.weapons[WEAPON_PURPLE_BALL].flyAni.scaled = false
+	a.weapons[WEAPON_PURPLE_BALL].deathAni.at = AT_CENTER
+	a.weapons[WEAPON_PURPLE_BALL].birthAudio = AUDIO_ICE_SHOOT
+	a.weapons[WEAPON_PURPLE_BALL].deathAudio = AUDIO_ARROW_HIT
+
+	a.weapons[WEAPON_PURPLE_STAFF].InitWeapon(a.textures, NONE, RES_PURPLE_EXP, RES_PURPLE_FIRE_BALL)
+	a.weapons[WEAPON_PURPLE_STAFF].wp = WEAPON_GUN_POINT_MULTI
+	a.weapons[WEAPON_PURPLE_STAFF].damage = 45
+	a.weapons[WEAPON_PURPLE_STAFF].effectRange = 50
+	a.weapons[WEAPON_PURPLE_STAFF].shootRange = 256
+	a.weapons[WEAPON_PURPLE_STAFF].gap = 100
+	a.weapons[WEAPON_PURPLE_STAFF].bulletSpeed = 7
+	a.weapons[WEAPON_PURPLE_STAFF].deathAni.angle = -1
+	a.weapons[WEAPON_PURPLE_STAFF].deathAni.scaled = false
+	a.weapons[WEAPON_PURPLE_STAFF].flyAni.scaled = true
+	a.weapons[WEAPON_PURPLE_STAFF].deathAni.at = AT_CENTER
+	a.weapons[WEAPON_PURPLE_STAFF].birthAudio = AUDIO_ICE_SHOOT
+	a.weapons[WEAPON_PURPLE_STAFF].deathAudio = AUDIO_ARROW_HIT
+
+	a.weapons[WEAPON_HOLY_SWORD].InitWeapon(a.textures, NONE, RES_GOLDEN_CROSS_HIT, NONE)
+	a.weapons[WEAPON_HOLY_SWORD].wp = WEAPON_SWORD_RANGE
+	a.weapons[WEAPON_HOLY_SWORD].damage = 30
+	a.weapons[WEAPON_HOLY_SWORD].shootRange = 32 * 4
+	a.weapons[WEAPON_HOLY_SWORD].effects[BUFF_DEFENCE] = WeaponBuff{chance: 0.6, duration: 180}
+
+	a.weapons[WEAPON_ICE_SWORD].InitWeapon(a.textures, NONE, RES_ICESHATTER, NONE)
+	a.weapons[WEAPON_ICE_SWORD].wp = WEAPON_SWORD_RANGE
+	a.weapons[WEAPON_ICE_SWORD].shootRange = 32*3 + 16
+	a.weapons[WEAPON_ICE_SWORD].damage = 80
+	a.weapons[WEAPON_ICE_SWORD].gap = 30
+	a.weapons[WEAPON_ICE_SWORD].deathAni.angle = -1
+	a.weapons[WEAPON_ICE_SWORD].deathAni.at = AT_CENTER
+	a.weapons[WEAPON_ICE_SWORD].effects[BUFF_FROZEN] = WeaponBuff{chance: 0.6, duration: 80}
+	a.weapons[WEAPON_ICE_SWORD].deathAudio = AUDIO_SWORD_HIT
+	log.Println("| init weapons - [DONE]")
+}
+
+func (a *Assets) InitCommonSprites() {
+	// Heroes
+	a.commonSprites.AddSprite(SPRITE_KNIGHT, &a.weapons[WEAPON_SWORD], a.textures[RES_KNIGHT_M], 150)
+	a.commonSprites.AddSprite(SPRITE_ELF, &a.weapons[WEAPON_ARROW], a.textures[RES_ELF_M], 100)
+	a.commonSprites.AddSprite(SPRITE_WIZZARD, &a.weapons[WEAPON_FIREBALL], a.textures[RES_WIZZARD_M], 95)
+	a.commonSprites.AddSprite(SPRITE_LIZARD, &a.weapons[WEAPON_MONSTER_CLAW], a.textures[RES_ZIGGY_M], 120)
+
+	// Baddies
+	a.commonSprites.AddSprite(SPRITE_TINY_ZOMBIE, &a.weapons[WEAPON_MONSTER_CLAW2], a.textures[RES_TINY_ZOMBIE], 50)
+	a.commonSprites.AddSprite(SPRITE_GOBLIN, &a.weapons[WEAPON_MONSTER_CLAW2], a.textures[RES_GOBLIN], 100)
+	a.commonSprites.AddSprite(SPRITE_IMP, &a.weapons[WEAPON_MONSTER_CLAW2], a.textures[RES_IMP], 100)
+	a.commonSprites.AddSprite(SPRITE_SKELET, &a.weapons[WEAPON_MONSTER_CLAW2], a.textures[RES_SKELET], 100)
+	a.commonSprites.AddSprite(SPRITE_MUDDY, &a.weapons[WEAPON_SOLID], a.textures[RES_MUDDY], 150)
+	a.commonSprites.AddSprite(SPRITE_SWAMPY, &a.weapons[WEAPON_SOLID_GREEN], a.textures[RES_SWAMPY], 150)
+	a.commonSprites.AddSprite(SPRITE_ZOMBIE, &a.weapons[WEAPON_MONSTER_CLAW2], a.textures[RES_ZOMBIE], 120)
+	a.commonSprites.AddSprite(SPRITE_ICE_ZOMBIE, &a.weapons[WEAPON_ICEPICK], a.textures[RES_ICE_ZOMBIE], 120)
+	a.commonSprites.AddSprite(SPRITE_MASKED_ORC, &a.weapons[WEAPON_THROW_AXE], a.textures[RES_MASKED_ORC], 120)
+	a.commonSprites.AddSprite(SPRITE_ORC_WARRIOR, &a.weapons[WEAPON_MONSTER_CLAW2], a.textures[RES_ORC_WARRIOR], 200)
+	a.commonSprites.AddSprite(SPRITE_ORC_SHAMAN, &a.weapons[WEAPON_MONSTER_CLAW2], a.textures[RES_ORC_SHAMAN], 120)
+	a.commonSprites.AddSprite(SPRITE_NECROMANCER, &a.weapons[WEAPON_PURPLE_BALL], a.textures[RES_NECROMANCER], 120)
+	a.commonSprites.AddSprite(SPRITE_WOGOL, &a.weapons[WEAPON_MONSTER_CLAW2], a.textures[RES_WOGOL], 150)
+	a.commonSprites.AddSprite(SPRITE_CHROT, &a.weapons[WEAPON_MONSTER_CLAW2], a.textures[RES_CHORT], 150)
+	a.commonSprites.AddSprite(SPRITE_GREEN_HOOD_SKEL, &a.weapons[WEAPON_PURPLE_BALL], a.textures[RES_GREEN_HOOD_SKEL], 150)
+
+	a.commonSprites.AddSprite(SPRITE_BIG_ZOMBIE, &a.weapons[WEAPON_THUNDER], a.textures[RES_BIG_ZOMBIE], 3000)
+	a.commonSprites.GetSprite(SPRITE_BIG_ZOMBIE).dropRate = 100
+
+	a.commonSprites.AddSprite(SPRITE_ORGRE, &a.weapons[WEAPON_MANY_AXES], a.textures[RES_ORGRE], 3000)
+	a.commonSprites.GetSprite(SPRITE_ORGRE).dropRate = 100
+
+	a.commonSprites.AddSprite(SPRITE_BIG_DEMON, &a.weapons[WEAPON_THUNDER], a.textures[RES_BIG_DEMON], 2500)
+	a.commonSprites.GetSprite(SPRITE_BIG_DEMON).dropRate = 100
+	log.Println("| init common sprites - [DONE]")
+}
+
+func LoadAssets(game *Game) (*Assets, error) {
 	log.Println("# LOAD MEDIA:")
-	InitCommonEffects()
-	loadTileSet()
-	loadFont()
-	loadTextSet()
-	InitWeapons()
-	InitCommonSprites()
-	LoadAudio()
-	fmt.Println()
-	return nil
+
+	var err error
+	a := &Assets{
+		commonSprites: CreateSpriteList(),
+	}
+
+	a.textures, err = LoadTileSet()
+	if err != nil {
+		return nil, err
+	}
+
+	a.font, err = LoadFont()
+	if err != nil {
+		return nil, err
+	}
+
+	a.texts = LoadTextSet(a.font)
+
+	a.audio, err = LoadAudio()
+	if err != nil {
+		return nil, err
+	}
+
+	a.InitCommonEffects()
+	a.InitWeapons()
+	a.InitCommonSprites()
+	return a, nil
 }

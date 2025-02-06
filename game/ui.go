@@ -239,12 +239,13 @@ func mainUI() {
 	)
 
 	const optsNum = 4
-	var opts [optsNum]*Text
-	for i := 0; i < optsNum; i++ {
-		opts[i] = &Texts[i+6]
+	var opts []*Text
+	for i := range optsNum {
+		opts = append(opts, &texts[i+6])
 	}
-	// const opt = try chooseOptions(optsNum, &opts);
+	// opt := chooseOptions(optsNum, opts)
 
+	// HERE:
 	// ren.blackout();
 	// ren.clearRenderer();
 
@@ -271,19 +272,21 @@ func mainUI() {
 
 func chooseOptions(optionsNum int, options []*Text) int {
 	cursorPos = 0
-	// player := createSnake(2, 0, LOCAL)
+	player := createSnake(2, 0, LOCAL)
 
-	// gm.appendSpriteToSnake(
-	//     player,
-	//     res.SPRITE_KNIGHT,
-	//     res.SCREEN_WIDTH / 2,
-	//     res.SCREEN_HEIGHT / 2,
-	//     .UP,
-	// );
-	// const lineGap: c_int = res.FONT_SIZE + res.FONT_SIZE / 2;
-	// const totalHeight: c_int = lineGap * (optionsNum - 1);
-	// const startY: c_int = @divTrunc((res.SCREEN_HEIGHT - totalHeight), 2);
+	appendSpriteToSnake(
+		player,
+		SPRITE_KNIGHT,
+		SCREEN_WIDTH/2,
+		SCREEN_HEIGHT/2,
+		UP,
+	)
 
+	// lineGap := FONT_SIZE + FONT_SIZE/2
+	// totalHeight := lineGap * (optionsNum - 1)
+	// startY := (SCREEN_HEIGHT - totalHeight) / 2
+
+	// HERE:
 	// var throttler = th.Throttler.init();
 	// while (!moveCursor(optionsNum)) {
 	//     if (throttler.shouldWait()) {

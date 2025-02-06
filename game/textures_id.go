@@ -177,7 +177,7 @@ const (
 	RES_ICESWORD                      = 195
 	RES_GRASSSWORD                    = 196
 	RES_IRONSWORD                     = 197
-	RES_HOLYSHIELD                    = 198
+	RES_HOLY_SHIELD                   = 198
 	RES_GOLDEN_CROSS_HIT              = 199
 	RES_SLIDER                        = 200
 	RES_BLUEBAR                       = 201

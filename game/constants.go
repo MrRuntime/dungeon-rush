@@ -1,7 +1,7 @@
 package game
 
 const (
-	// 	GAME_NAME     = "Dungeon Rush: Go-Edition v1.0 - by @MrRuntime"
+	GAME_NAME     = "Dungeon Rush: Go-Edition v1.0 - by @MrRuntime"
 	UNIT          = 32
 	SCALE_FACTOR  = 2
 	SCREEN_FACTOR = 2
@@ -9,6 +9,7 @@ const (
 	SCREEN_HEIGHT = 960 * SCREEN_FACTOR
 	N             = SCREEN_WIDTH / UNIT
 	M             = SCREEN_HEIGHT / UNIT
+	FONT_SIZE     = 32
 
 	NONE = -1
 
@@ -24,6 +25,11 @@ const (
 	BUFF_ATTACK             = 3
 	BUFF_END                = 4
 	ANIMATION_LINK_LIST_NUM = 16
+
+	// Effect
+	EFFECT_DEATH    = 0
+	EFFECT_BLINK    = 1
+	EFFECT_VANISH30 = 2
 
 	WEAPONS_SIZE         = 128
 	WEAPON_SWORD         = 0

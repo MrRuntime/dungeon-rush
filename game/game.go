@@ -5,17 +5,18 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 )
 
-type Game struct{}
+type Game struct {
+}
 
 func New() (*Game, error) {
 	g := &Game{}
 
-	err := LoadMedia()
+	err := LoadAssets(g)
 	if err != nil {
 		return g, err
 	}
 
-	mainUI()
+	// mainUI()
 	return g, nil
 }
 
@@ -30,19 +31,3 @@ func (g *Game) Layout(width, height int) (int, int) {
 func (g *Game) Update() error {
 	return nil
 }
-
-// func Init() bool {
-// 	// rand.Seed(time.Now().UnixNano())
-// 	// ebiten.SetWindowSize(screen_width / 2, screen_height / 2)
-// 	// ebiten.SetWindowTitle(game_name)
-
-// 	// IMG_Init
-// 	// TTF_Init
-// 	// Mix_OpenAudio
-// 	// SDLNet_Init
-
-// 	// fmt.Println(tilesetPath)
-
-// 	success := true
-// 	return success
-// }
