@@ -1,7 +1,5 @@
 package game
 
-import "log"
-
 type PositionBufferSlot struct {
 	x         int
 	y         int
@@ -32,7 +30,7 @@ type SpriteList struct {
 }
 
 func (self *SpriteList) AddSprite(id int, weapon *Weapon, texture *Texture, hp int) {
-	ani := createAnimation(
+	ani := CreateAnimation(
 		texture,
 		nil,
 		LOOP_INFI,

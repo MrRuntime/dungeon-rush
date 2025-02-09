@@ -1,6 +1,7 @@
 package game
 
-func appendSpriteToSnake(
+func AppendSpriteToSnake(
+	assets *Assets,
 	snake *Snake,
 	spriteId int,
 	x int, // x ,y, dir only matter when empty snake
@@ -23,7 +24,7 @@ func appendSpriteToSnake(
 		newX = snakeHead.x
 		newY = snakeHead.y
 		delta := (snakeHead.ani.origin.width*SCALE_FACTOR +
-			commonSprites.GetSprite(spriteId).ani.origin.width*SCALE_FACTOR) / 2
+			assets.commonSprites.GetSprite(spriteId).ani.origin.width*SCALE_FACTOR) / 2
 		if snakeHead.direction == LEFT {
 			newX -= delta
 		} else if snakeHead.direction == RIGHT {
@@ -35,7 +36,7 @@ func appendSpriteToSnake(
 		}
 	}
 
-	sprite := commonSprites.GetCopy(spriteId)
+	sprite := assets.commonSprites.GetCopy(spriteId)
 	sprite.x = newX
 	sprite.y = newY
 	sprite.direction = direction
@@ -57,7 +58,7 @@ func appendSpriteToSnake(
 
 	// push ani
 	// ren.pushAnimationToRender(ren.RENDER_LIST_SPRITE_ID, sprite.ani);
-	animationsList[LIST_SPRITE_ID].PushBack(sprite.ani)
+	assets.animations[LIST_SPRITE_ID].PushBack(sprite.ani)
 
 	// r.c. - I think the buffs array should be booleans (possibly, confirm later)
 	// Confirmed they should not be booleans, because they are counted down.
@@ -65,16 +66,16 @@ func appendSpriteToSnake(
 	//     shieldSprite(sprite, snake.buffs[tps.BUFF_DEFENCE]);
 	// }
 	if snake.buffs[BUFF_DEFENCE] > 0 {
-		ShieldSprite(sprite, snake.buffs[BUFF_DEFENCE])
+		ShieldSprite(assets, sprite, snake.buffs[BUFF_DEFENCE])
 	}
 }
 
-func ShieldSprite(sprite *Sprite, duration int) {
-	effect := effects[EFFECT_BLINK].copy()
+func ShieldSprite(assets *Assets, sprite *Sprite, duration int) {
+	effect := assets.effects[EFFECT_BLINK].copy()
 
-	ani := createAndPushAnimation(
-		LIST_EFFECT_ID,
-		RES_HOLY_SHIELD,
+	ani := CreateAndPushAnimation(
+		assets.animations[LIST_EFFECT_ID],
+		assets.textures[RES_HOLY_SHIELD],
 		effect,
 		LOOP_LIFESPAN,
 		40,

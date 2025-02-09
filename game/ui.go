@@ -6,25 +6,25 @@ import (
 
 var cursorPos int = 0
 
-func baseUI(w, h int) {
-	initAnimList() //init array of link list
-	InitBlankMap(w, h)
-	pushMapToRender()
+func BaseUI(assets *Assets, w, h int) {
+	InitAnimList(assets)
+	InitBlankMap(assets, w, h)
+	PushMapToRender(assets)
 }
 
-func mainUI() {
+func mainUI(assets *Assets) {
 	log.Println("| MAIN UI:")
-	baseUI(30, 12)
+	BaseUI(assets, 30, 12)
 	// playBgm(0)
 	startY := (SCREEN_HEIGHT / 2) - 70
 	startX := (SCREEN_WIDTH / 3) + 125
 
-	cpa := createAndPushAnimation
+	cpa := CreateAndPushAnimation
 
 	// Title - Logo
 	_ = cpa(
-		LIST_UI_ID,
-		TITLE,
+		assets.animations[LIST_UI_ID],
+		assets.textures[TITLE],
 		nil,
 		LOOP_INFI,
 		80,
@@ -37,8 +37,8 @@ func mainUI() {
 
 	// Knight
 	_ = cpa(
-		LIST_SPRITE_ID,
-		RES_KNIGHT_M,
+		assets.animations[LIST_SPRITE_ID],
+		assets.textures[RES_KNIGHT_M],
 		nil,
 		LOOP_INFI,
 		SPRITE_ANIMATION_DURATION,
@@ -51,8 +51,8 @@ func mainUI() {
 
 	// Sword effect
 	ani := cpa(
-		LIST_EFFECT_ID,
-		RES_SWORDFX,
+		assets.animations[LIST_EFFECT_ID],
+		assets.textures[RES_SWORDFX],
 		nil,
 		LOOP_INFI,
 		SPRITE_ANIMATION_DURATION,
@@ -66,8 +66,8 @@ func mainUI() {
 
 	// Red bad-guy (Knight enemy)
 	_ = cpa(
-		LIST_SPRITE_ID,
-		RES_CHORT,
+		assets.animations[LIST_SPRITE_ID],
+		assets.textures[RES_CHORT],
 		nil,
 		LOOP_INFI,
 		SPRITE_ANIMATION_DURATION,
@@ -83,8 +83,8 @@ func mainUI() {
 
 	// Green elf
 	_ = cpa(
-		LIST_SPRITE_ID,
-		RES_ELF_M,
+		assets.animations[LIST_SPRITE_ID],
+		assets.textures[RES_ELF_M],
 		nil,
 		LOOP_INFI,
 		SPRITE_ANIMATION_DURATION,
@@ -95,8 +95,8 @@ func mainUI() {
 		AT_BOTTOM_CENTER,
 	)
 	_ = cpa(
-		LIST_EFFECT_ID,
-		RES_HALO_EXPLOSION2,
+		assets.animations[LIST_EFFECT_ID],
+		assets.textures[RES_HALO_EXPLOSION2],
 		nil,
 		LOOP_INFI,
 		SPRITE_ANIMATION_DURATION,
@@ -107,8 +107,8 @@ func mainUI() {
 		AT_BOTTOM_CENTER,
 	)
 	_ = cpa(
-		LIST_SPRITE_ID,
-		RES_ZOMBIE,
+		assets.animations[LIST_SPRITE_ID],
+		assets.textures[RES_ZOMBIE],
 		nil,
 		LOOP_INFI,
 		SPRITE_ANIMATION_DURATION,
@@ -124,8 +124,8 @@ func mainUI() {
 
 	// Blue wizard and fireball.
 	_ = cpa(
-		LIST_SPRITE_ID,
-		RES_WIZZARD_M,
+		assets.animations[LIST_SPRITE_ID],
+		assets.textures[RES_WIZZARD_M],
 		nil,
 		LOOP_INFI,
 		SPRITE_ANIMATION_DURATION,
@@ -136,8 +136,8 @@ func mainUI() {
 		AT_BOTTOM_CENTER,
 	)
 	_ = cpa(
-		LIST_EFFECT_ID,
-		RES_FIREBALL,
+		assets.animations[LIST_EFFECT_ID],
+		assets.textures[RES_FIREBALL],
 		nil,
 		LOOP_INFI,
 		SPRITE_ANIMATION_DURATION,
@@ -152,8 +152,8 @@ func mainUI() {
 	startY -= int(UI_MAIN_GAP * (1.0 + 3.0*randDouble()))
 
 	_ = cpa(
-		LIST_SPRITE_ID,
-		RES_ZIGGY_M,
+		assets.animations[LIST_SPRITE_ID],
+		assets.textures[RES_ZIGGY_M],
 		nil,
 		LOOP_INFI,
 		SPRITE_ANIMATION_DURATION,
@@ -164,8 +164,8 @@ func mainUI() {
 		AT_BOTTOM_CENTER,
 	)
 	_ = cpa(
-		LIST_EFFECT_ID,
-		RES_CLAWFX2,
+		assets.animations[LIST_EFFECT_ID],
+		assets.textures[RES_CLAWFX2],
 		nil,
 		LOOP_INFI,
 		SPRITE_ANIMATION_DURATION,
@@ -176,8 +176,8 @@ func mainUI() {
 		AT_BOTTOM_CENTER,
 	)
 	_ = cpa(
-		LIST_SPRITE_ID,
-		RES_MUDDY,
+		assets.animations[LIST_SPRITE_ID],
+		assets.textures[RES_MUDDY],
 		nil,
 		LOOP_INFI,
 		SPRITE_ANIMATION_DURATION,
@@ -189,8 +189,8 @@ func mainUI() {
 	)
 
 	_ = cpa(
-		LIST_EFFECT_ID,
-		RES_CLAWFX2,
+		assets.animations[LIST_EFFECT_ID],
+		assets.textures[RES_CLAWFX2],
 		nil,
 		LOOP_INFI,
 		SPRITE_ANIMATION_DURATION,
@@ -201,8 +201,8 @@ func mainUI() {
 		AT_BOTTOM_CENTER,
 	)
 	_ = cpa(
-		LIST_SPRITE_ID,
-		RES_SWAMPY,
+		assets.animations[LIST_SPRITE_ID],
+		assets.textures[RES_SWAMPY],
 		nil,
 		LOOP_INFI,
 		SPRITE_ANIMATION_DURATION,
@@ -214,8 +214,8 @@ func mainUI() {
 	)
 
 	_ = cpa(
-		LIST_EFFECT_ID,
-		RES_CLAWFX2,
+		assets.animations[LIST_EFFECT_ID],
+		assets.textures[RES_CLAWFX2],
 		nil,
 		LOOP_INFI,
 		SPRITE_ANIMATION_DURATION,
@@ -226,8 +226,8 @@ func mainUI() {
 		AT_BOTTOM_CENTER,
 	)
 	_ = cpa(
-		LIST_SPRITE_ID,
-		RES_SWAMPY,
+		assets.animations[LIST_SPRITE_ID],
+		assets.textures[RES_SWAMPY],
 		nil,
 		LOOP_INFI,
 		SPRITE_ANIMATION_DURATION,
@@ -241,9 +241,9 @@ func mainUI() {
 	const optsNum = 4
 	var opts []*Text
 	for i := range optsNum {
-		opts = append(opts, &texts[i+6])
+		opts = append(opts, &assets.texts[i+6])
 	}
-	// opt := chooseOptions(optsNum, opts)
+	// opt := chooseOptions(assets, optsNum, opts)
 
 	// HERE:
 	// ren.blackout();
@@ -270,11 +270,12 @@ func mainUI() {
 	// }
 }
 
-func chooseOptions(optionsNum int, options []*Text) int {
+func ChooseOptions(assets *Assets, optionsNum int, options []*Text) int {
 	cursorPos = 0
-	player := createSnake(2, 0, LOCAL)
+	player := CreateSnake(2, 0, LOCAL)
 
-	appendSpriteToSnake(
+	AppendSpriteToSnake(
+		assets,
 		player,
 		SPRITE_KNIGHT,
 		SCREEN_WIDTH/2,

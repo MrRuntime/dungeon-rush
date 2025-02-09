@@ -2,6 +2,8 @@ package game
 
 import (
 	"log"
+
+	"github.com/hajimehoshi/ebiten/v2"
 )
 
 //go:generate stringer -type=BlockType -linecomment
@@ -31,7 +33,7 @@ var Has_Map [MAP_SIZE][MAP_SIZE]bool
 var exitX int = -1
 var exitY int = -1
 
-func initBlock(block *Block, bp BlockType, x int, y int, bid int, enable bool) {
+func InitBlock(assets *Assets, block *Block, bp BlockType, x int, y int, bid int, enable bool) {
 	block.x = x
 	block.y = y
 	block.bid = bid
@@ -44,7 +46,7 @@ func initBlock(block *Block, bp BlockType, x int, y int, bid int, enable bool) {
 		} else {
 			floor_spike = RES_FLOOR_SPIKE_DISABLED
 		}
-		block.ani = createAnimation(textures[floor_spike], nil, LOOP_INFI, 1, x, y, FLIP_NONE, 0, AT_TOP_LEFT)
+		block.ani = CreateAnimation(assets.textures[floor_spike], nil, LOOP_INFI, 1, x, y, FLIP_NONE, 0, AT_TOP_LEFT)
 	} else if bp == BLOCK_EXIT {
 		var floor_spike int
 		if enable {
@@ -52,22 +54,25 @@ func initBlock(block *Block, bp BlockType, x int, y int, bid int, enable bool) {
 		} else {
 			floor_spike = RES_FLOOR_2
 		}
-		block.ani = createAnimation(textures[floor_spike], nil, LOOP_INFI, 1, x, y, FLIP_NONE, 0, AT_TOP_LEFT)
+		block.ani = CreateAnimation(assets.textures[floor_spike], nil, LOOP_INFI, 1, x, y, FLIP_NONE, 0, AT_TOP_LEFT)
 	} else {
-		block.ani = createAnimation(textures[bid], nil, LOOP_INFI, 1, x, y, FLIP_NONE, 0, AT_TOP_LEFT)
+		block.ani = CreateAnimation(assets.textures[bid], nil, LOOP_INFI, 1, x, y, FLIP_NONE, 0, AT_TOP_LEFT)
 	}
 }
 
-func InitBlankMap(w, h int) {
+func InitBlankMap(assets *Assets, w, h int) {
 	// clearMapGenerator();
-	si := N/2 - w/2
-	sj := M/2 - h/2
-	for i := 0; i < w; i++ {
-		for j := 0; j < h; j++ {
+	sw, sh := ebiten.Monitor().Size()
+	n := sw / UNIT
+	m := sh / UNIT
+	si := n/2 - w/2
+	sj := m/2 - h/2
+	for i := range w {
+		for j := range h {
 			ii := si + i
 			jj := sj + j
 			Has_Map[ii][jj] = true
-			initBlock(&Game_Map[ii][jj], BLOCK_FLOOR, ii*UNIT, jj*UNIT, RES_FLOOR_1, false)
+			InitBlock(assets, &Game_Map[ii][jj], BLOCK_FLOOR, ii*UNIT, jj*UNIT, RES_FLOOR_1, false)
 		}
 	}
 	// decorateMap();
@@ -75,23 +80,26 @@ func InitBlankMap(w, h int) {
 	// fmt.Println(Game_Map)
 }
 
-func pushMapToRender() {
-	cpa := createAndPushAnimation
-	for i := 0; i < N; i++ {
-		for j := 0; j < M; j++ {
+func PushMapToRender(assets *Assets) {
+	cpa := CreateAndPushAnimation
+	sw, sh := ebiten.Monitor().Size()
+	n := sw / UNIT
+	m := sh / UNIT
+	for i := 0; i < n; i++ {
+		for j := 0; j < m; j++ {
 			if !Has_Map[i][j] {
-				if inr(j+1, 0, M-1) && Has_Map[i][j+1] {
-					if inr(i+1, 0, N-1) && Has_Map[i+1][j] {
-						_ = cpa(LIST_MAP_ID, RES_WALL_CORNER_FRONT_RIGHT,
+				if inr(j+1, 0, m-1) && Has_Map[i][j+1] {
+					if inr(i+1, 0, n-1) && Has_Map[i+1][j] {
+						_ = cpa(assets.animations[LIST_MAP_ID], assets.textures[RES_WALL_CORNER_FRONT_RIGHT],
 							nil, LOOP_INFI, 1, i*UNIT, j*UNIT, FLIP_NONE, 0, AT_TOP_LEFT)
 
-						_ = cpa(LIST_MAP_ID, RES_WALL_CORNER_BOTTOM_RIGHT,
+						_ = cpa(assets.animations[LIST_MAP_ID], assets.textures[RES_WALL_CORNER_BOTTOM_RIGHT],
 							nil, LOOP_INFI, 1, i*UNIT, (j-1)*UNIT, FLIP_NONE, 0, AT_TOP_LEFT)
-					} else if inr(i-1, 0, N-1) && Has_Map[i-1][j] {
-						_ = cpa(LIST_MAP_ID, RES_WALL_CORNER_FRONT_LEFT,
+					} else if inr(i-1, 0, n-1) && Has_Map[i-1][j] {
+						_ = cpa(assets.animations[LIST_MAP_ID], assets.textures[RES_WALL_CORNER_FRONT_LEFT],
 							nil, LOOP_INFI, 1, i*UNIT, j*UNIT, FLIP_NONE, 0, AT_TOP_LEFT)
 
-						_ = cpa(LIST_MAP_ID, RES_WALL_CORNER_BOTTOM_LEFT,
+						_ = cpa(assets.animations[LIST_MAP_ID], assets.textures[RES_WALL_CORNER_BOTTOM_LEFT],
 							nil, LOOP_INFI, 1, i*UNIT, (j-1)*UNIT, FLIP_NONE, 0, AT_TOP_LEFT)
 					} else {
 						var bid int
@@ -103,14 +111,14 @@ func pushMapToRender() {
 						if randDouble() < MAP_WALL_HOW_DECORATED {
 							bid = RES_WALL_BANNER_RED + randInt(0, 3)
 						}
-						_ = cpa(LIST_MAP_ID, int(bid), nil, LOOP_INFI, 1,
+						_ = cpa(assets.animations[LIST_MAP_ID], assets.textures[int(bid)], nil, LOOP_INFI, 1,
 							i*UNIT, j*UNIT, FLIP_NONE, 0, AT_TOP_LEFT)
 
-						_ = cpa(LIST_MAP_ID, RES_WALL_TOP_MID, nil, LOOP_INFI,
+						_ = cpa(assets.animations[LIST_MAP_ID], assets.textures[RES_WALL_TOP_MID], nil, LOOP_INFI,
 							1, i*UNIT, (j-1)*UNIT, FLIP_NONE, 0, AT_TOP_LEFT)
 					}
 				}
-				if inr(j-1, 0, M-1) && Has_Map[i][j-1] {
+				if inr(j-1, 0, m-1) && Has_Map[i][j-1] {
 					var bid int
 
 					if randDouble() < MAP_HOW_OLD*2 {
@@ -118,65 +126,65 @@ func pushMapToRender() {
 					} else {
 						bid = RES_WALL_MID
 					}
-					_ = cpa(LIST_MAP_ID, int(bid), nil, LOOP_INFI, 1,
+					_ = cpa(assets.animations[LIST_MAP_ID], assets.textures[int(bid)], nil, LOOP_INFI, 1,
 						i*UNIT, j*UNIT, FLIP_NONE, 0, AT_TOP_LEFT)
 
 					if Has_Map[i-1][j] {
-						_ = cpa(LIST_MAP_FOREWALL, RES_WALL_CORNER_TOP_LEFT,
+						_ = cpa(assets.animations[LIST_MAP_FOREWALL], assets.textures[RES_WALL_CORNER_TOP_LEFT],
 							nil, LOOP_INFI, 1, i*UNIT, (j-1)*UNIT,
 							FLIP_NONE, 0, AT_TOP_LEFT)
 					} else if Has_Map[i+1][j] {
-						_ = cpa(LIST_MAP_FOREWALL, RES_WALL_CORNER_TOP_RIGHT,
+						_ = cpa(assets.animations[LIST_MAP_FOREWALL], assets.textures[RES_WALL_CORNER_TOP_RIGHT],
 							nil, LOOP_INFI, 1, i*UNIT, (j-1)*UNIT,
 							FLIP_NONE, 0, AT_TOP_LEFT)
 					} else {
-						_ = cpa(LIST_MAP_FOREWALL, RES_WALL_TOP_MID,
+						_ = cpa(assets.animations[LIST_MAP_FOREWALL], assets.textures[RES_WALL_TOP_MID],
 							nil, LOOP_INFI, 1, i*UNIT, (j-1)*UNIT,
 							FLIP_NONE, 0, AT_TOP_LEFT)
 					}
 				}
-				if inr(i+1, 0, N-1) && Has_Map[i+1][j] {
-					if inr(j+1, 0, M-1) && Has_Map[i][j+1] {
+				if inr(i+1, 0, n-1) && Has_Map[i+1][j] {
+					if inr(j+1, 0, m-1) && Has_Map[i][j+1] {
 						// just do not render
 					} else {
-						_ = cpa(LIST_MAP_ID, RES_WALL_SIDE_MID_LEFT,
+						_ = cpa(assets.animations[LIST_MAP_ID], assets.textures[RES_WALL_SIDE_MID_LEFT],
 							nil, LOOP_INFI, 1, i*UNIT, j*UNIT,
 							FLIP_NONE, 0, AT_TOP_LEFT)
 					}
 					if !Has_Map[i+1][j+1] {
-						_ = cpa(LIST_MAP_ID, RES_WALL_SIDE_FRONT_LEFT,
+						_ = cpa(assets.animations[LIST_MAP_ID], assets.textures[RES_WALL_SIDE_FRONT_LEFT],
 							nil, LOOP_INFI, 1, i*UNIT, (j+1)*UNIT,
 							FLIP_NONE, 0, AT_TOP_LEFT)
 					}
 					if !Has_Map[i+1][j-1] {
-						_ = cpa(LIST_MAP_ID, RES_WALL_SIDE_MID_LEFT,
+						_ = cpa(assets.animations[LIST_MAP_ID], assets.textures[RES_WALL_SIDE_MID_LEFT],
 							nil, LOOP_INFI, 1, i*UNIT, (j-1)*UNIT,
 							FLIP_NONE, 0, AT_TOP_LEFT)
 
-						_ = cpa(LIST_MAP_ID, RES_WALL_SIDE_TOP_LEFT,
+						_ = cpa(assets.animations[LIST_MAP_ID], assets.textures[RES_WALL_SIDE_TOP_LEFT],
 							nil, LOOP_INFI, 1, i*UNIT, (j-2)*UNIT,
 							FLIP_NONE, 0, AT_TOP_LEFT)
 					}
 				}
-				if inr(i-1, 0, N-1) && Has_Map[i-1][j] {
-					if inr(j+1, 0, M-1) && Has_Map[i][j+1] {
+				if inr(i-1, 0, n-1) && Has_Map[i-1][j] {
+					if inr(j+1, 0, m-1) && Has_Map[i][j+1] {
 						// just do not render
 					} else {
-						_ = cpa(LIST_MAP_ID, RES_WALL_SIDE_MID_RIGHT,
+						_ = cpa(assets.animations[LIST_MAP_ID], assets.textures[RES_WALL_SIDE_MID_RIGHT],
 							nil, LOOP_INFI, 1, i*UNIT, j*UNIT,
 							FLIP_NONE, 0, AT_TOP_LEFT)
 					}
 					if !Has_Map[i-1][j+1] {
-						_ = cpa(LIST_MAP_ID, RES_WALL_SIDE_FRONT_RIGHT,
+						_ = cpa(assets.animations[LIST_MAP_ID], assets.textures[RES_WALL_SIDE_FRONT_RIGHT],
 							nil, LOOP_INFI, 1, i*UNIT, (j+1)*UNIT,
 							FLIP_NONE, 0, AT_TOP_LEFT)
 					}
 					if !Has_Map[i-1][j-1] {
-						_ = cpa(LIST_MAP_ID, RES_WALL_SIDE_MID_RIGHT,
+						_ = cpa(assets.animations[LIST_MAP_ID], assets.textures[RES_WALL_SIDE_MID_RIGHT],
 							nil, LOOP_INFI, 1, i*UNIT, (j-1)*UNIT,
 							FLIP_NONE, 0, AT_TOP_LEFT)
 
-						_ = cpa(LIST_MAP_ID, RES_WALL_SIDE_TOP_RIGHT,
+						_ = cpa(assets.animations[LIST_MAP_ID], assets.textures[RES_WALL_SIDE_TOP_RIGHT],
 							nil, LOOP_INFI, 1, i*UNIT, (j-2)*UNIT,
 							FLIP_NONE, 0, AT_TOP_LEFT)
 					}
@@ -185,12 +193,12 @@ func pushMapToRender() {
 		}
 	}
 
-	for i := 0; i < N; i++ {
-		for j := 0; j < M; j++ {
+	for i := 0; i < n; i++ {
+		for j := 0; j < m; j++ {
 			if !Has_Map[i][j] {
 				continue
 			}
-			animationsList[LIST_MAP_ID].PushBack(Game_Map[i][j].ani)
+			assets.animations[LIST_MAP_ID].PushBack(Game_Map[i][j].ani)
 		}
 	}
 	log.Println("| push map to render - [DONE]")

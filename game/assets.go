@@ -31,8 +31,8 @@ type Texture struct {
 
 type Text = struct {
 	text   string
-	width  float64
-	heigh  float64
+	width  int
+	height int
 	origin *text.GoTextFace
 	color  color.RGBA
 }
@@ -49,9 +49,10 @@ type Assets struct {
 	textures      []*Texture
 	commonSprites SpriteList
 	effects       []Effect
-	weapons       []Weapon
+	weapons       [WEAPONS_SIZE]Weapon
 	font          Font
 	audio         Audio
+	animations    [ANIMATION_LINK_LIST_NUM]*AnimationsList
 }
 
 var textList = []string{
@@ -175,19 +176,19 @@ func InitTileSet(csvPath string, origin *ebiten.Image) ([]*Texture, error) {
 }
 
 func LoadTileSet() ([]*Texture, error) {
-	var t []*Texture
-	var err error
+	res := []*Texture{}
 	for _, it := range tilesetName {
 		csvPath := fmt.Sprintf("assets/images/%s", it)
 		imgPath := fmt.Sprintf("assets/images/%s.png", it)
 		origin, _, _ := ebitenutil.NewImageFromFile(imgPath)
-		t, err = InitTileSet(csvPath, origin)
+		t, err := InitTileSet(csvPath, origin)
 		if err != nil {
 			return nil, err
 		}
+		res = append(res, t...)
 	}
 	log.Println("| load tileset - [DONE]")
-	return t, nil
+	return res, nil
 }
 
 func LoadFont() (Font, error) {
@@ -216,16 +217,28 @@ func LoadFont() (Font, error) {
 func LoadTextSet(font Font) []Text {
 	texts := []Text{}
 	for _, str := range textList {
-		f := &text.GoTextFace{Source: font, Size: 24}
+		f := &text.GoTextFace{Source: font, Size: FONT_SIZE}
 		w, h := text.Measure(str, f, 0)
 		texts = append(texts, Text{
 			origin: f,
 			text:   str,
-			width:  w,
-			heigh:  h,
+			width:  int(w),
+			height: int(h),
 			color:  color.RGBA{0xff, 0xff, 0xff, 0xff},
 		})
 	}
+
+	version := fmt.Sprintf("Version: %.1f", VERSION)
+	f := &text.GoTextFace{Source: font, Size: FONT_SIZE}
+	w, h := text.Measure(version, f, 0)
+	texts = append(texts, Text{
+		origin: f,
+		text:   version,
+		width:  int(w),
+		height: int(h),
+		color:  color.RGBA{0xff, 0xff, 0xff, 0xff},
+	})
+
 	log.Println("| load textset - [DONE]")
 	return texts
 }
@@ -352,12 +365,14 @@ func (a *Assets) InitCommonEffects() {
 }
 
 func (a *Assets) InitWeapons() {
+	log.Println(len(a.textures))
 	a.weapons[WEAPON_SWORD].InitWeapon(a.textures, NONE, RES_SWORDFX, NONE)
 	a.weapons[WEAPON_SWORD].damage = 30
 	a.weapons[WEAPON_SWORD].shootRange = 32 * 3
 	a.weapons[WEAPON_SWORD].deathAni.scaled = false
 	a.weapons[WEAPON_SWORD].deathAni.angle = -1.0
 	a.weapons[WEAPON_SWORD].deathAudio = AUDIO_SWORD_HIT
+	log.Println("here")
 
 	a.weapons[WEAPON_MONSTER_CLAW].InitWeapon(a.textures, NONE, RES_CLAWFX2, NONE)
 	a.weapons[WEAPON_MONSTER_CLAW].wp = WEAPON_SWORD_RANGE
@@ -563,7 +578,7 @@ func (a *Assets) InitCommonSprites() {
 	log.Println("| init common sprites - [DONE]")
 }
 
-func LoadAssets(game *Game) (*Assets, error) {
+func LoadAssets() (*Assets, error) {
 	log.Println("# LOAD MEDIA:")
 
 	var err error

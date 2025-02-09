@@ -39,7 +39,7 @@ type Snake struct {
 	playerType PlayerType
 }
 
-func createSnake(step int, team int, playerType PlayerType) *Snake {
+func CreateSnake(step int, team int, playerType PlayerType) *Snake {
 	snake := &Snake{
 		moveStep:   step,
 		team:       team,

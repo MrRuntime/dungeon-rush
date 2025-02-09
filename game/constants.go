@@ -1,15 +1,18 @@
 package game
 
 const (
-	GAME_NAME     = "Dungeon Rush: Go-Edition v1.0 - by @MrRuntime"
+	NAME          = "Dungeon Rush: Go-Edition v1.0 - by @MrRuntime"
+	VERSION       = 0.1 // TODO: move to file inc when release
 	UNIT          = 32
 	SCALE_FACTOR  = 2
 	SCREEN_FACTOR = 2
-	SCREEN_WIDTH  = 1440 * SCREEN_FACTOR
-	SCREEN_HEIGHT = 960 * SCREEN_FACTOR
-	N             = SCREEN_WIDTH / UNIT
-	M             = SCREEN_HEIGHT / UNIT
+	// SCREEN_WIDTH  = 1440 * SCREEN_FACTOR
+	// SCREEN_HEIGHT = 960 * SCREEN_FACTOR
+	SCREEN_WIDTH  = 800
+	SCREEN_HEIGHT = 600
 	FONT_SIZE     = 32
+	// N             = SCREEN_WIDTH / UNIT
+	// M             = SCREEN_HEIGHT / UNIT
 
 	NONE = -1
 

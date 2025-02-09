@@ -1,7 +1,5 @@
 package game
 
-import "log"
-
 type WeaponType int
 
 const (
@@ -45,8 +43,10 @@ func (w *Weapon) InitWeapon(textures []*Texture, birthTextureId, deathTextureId,
 	var deathAni *Animation = nil
 	var flyAni *Animation = nil
 
+	// log.Println(textures)
+
 	if birthTextureId != NONE {
-		birthAni = createAnimation(
+		birthAni = CreateAnimation(
 			textures[birthTextureId],
 			nil,
 			LOOP_ONCE,
@@ -59,7 +59,7 @@ func (w *Weapon) InitWeapon(textures []*Texture, birthTextureId, deathTextureId,
 		)
 	}
 	if deathTextureId != NONE {
-		deathAni = createAnimation(
+		deathAni = CreateAnimation(
 			textures[deathTextureId],
 			nil,
 			LOOP_ONCE,
@@ -72,7 +72,7 @@ func (w *Weapon) InitWeapon(textures []*Texture, birthTextureId, deathTextureId,
 		)
 	}
 	if flyTextureId != NONE {
-		flyAni = createAnimation(
+		flyAni = CreateAnimation(
 			textures[flyTextureId],
 			nil,
 			LOOP_INFI,

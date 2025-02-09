@@ -33,6 +33,8 @@ const (
 	AT_CENTER
 )
 
+type AnimationsList = list.List
+
 type Animation struct {
 	lp           LoopType
 	origin       *Texture
@@ -51,9 +53,8 @@ type Animation struct {
 }
 
 var renderFrames uint = 0
-var animationsList [ANIMATION_LINK_LIST_NUM]*list.List
 
-func createAnimation(
+func CreateAnimation(
 	origin *Texture,
 	effect *Effect,
 	lp LoopType,
@@ -88,9 +89,9 @@ func createAnimation(
 	}
 }
 
-func createAndPushAnimation(
-	listId int,
-	textureId int,
+func CreateAndPushAnimation(
+	animationsList *AnimationsList,
+	texture *Texture,
 	effect *Effect,
 	lp LoopType,
 	duration int,
@@ -99,8 +100,8 @@ func createAndPushAnimation(
 	angle float64,
 	at AtType,
 ) *Animation {
-	ani := createAnimation(
-		textures[textureId],
+	ani := CreateAnimation(
+		texture,
 		effect,
 		lp,
 		duration,
@@ -109,14 +110,61 @@ func createAndPushAnimation(
 		angle,
 		at,
 	)
-	animationsList[listId].PushBack(ani)
+	animationsList.PushBack(ani)
 	return ani
 }
 
-func initAnimList() {
+func InitAnimList(assets *Assets) {
 	renderFrames = 0
-	for idx := 0; idx < ANIMATION_LINK_LIST_NUM; idx++ {
-		animationsList[idx] = list.New()
+	for idx := range ANIMATION_LINK_LIST_NUM {
+		assets.animations[idx] = list.New()
 	}
 	log.Println("| init animation list - [DONE]")
+}
+
+func UpdateAnimationFromBind(ani *Animation) {
+	if bnd := ani.bindTo; bnd != nil {
+		sprite := bnd
+		ani.x = sprite.x
+		ani.y = sprite.y
+		ani.flip = sprite.ani.flip
+	}
+}
+
+func UpdateAnimationOfSprite(sprite *Sprite) {
+	ani := sprite.ani
+	ani.x = sprite.x
+	ani.y = sprite.y
+	if sprite.face == RIGHT {
+		ani.flip = FLIP_NONE
+	} else {
+		ani.flip = FLIP_H
+	}
+}
+
+func UpdateAnimationLinkList(al *AnimationsList) {
+	for p := al.Front(); p != nil; p = p.Next() {
+		ani := p.Value.(*Animation)
+		ani.currentFrame += 1
+		ani.lifeSpan -= 1
+
+		if ani.effect != nil {
+			ani.effect.currentFrame += 1
+			ani.effect.currentFrame = ani.effect.currentFrame % ani.effect.duration
+		}
+
+		if ani.lp == LOOP_ONCE {
+			if ani.currentFrame == ani.duration {
+				ani = nil
+				al.Remove(p)
+			}
+		} else {
+			if ani.lp == LOOP_LIFESPAN && ani.lifeSpan <= 0 {
+				ani = nil
+				al.Remove(p)
+			} else {
+				ani.currentFrame = ani.currentFrame % ani.duration
+			}
+		}
+	}
 }
